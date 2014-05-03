@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Extract DOI from PDF files
+# Will take the first DOI on the first page, which usually works
+
+# author:   François-Xavier Coudert
+# e-mail:   fxcoudert@gmail.com
+# updated:  2014-05-03
+
+
+extract () {
+  printf "$1"
+  text=`pdftotext -f 1 -l 1 -raw "$2" - | grep '10\.'`
+  echo $text | perl -pe 's@.*[ /]10\.@10\.@ ; s@[ \t].*@@'
+}
+
+
+if [ $# -eq 1 ]; then
+  extract "" "$1"
+else
+  for i in "$@" ; do
+    extract "$i: " "$i"
+  done
+fi
+
