@@ -6,7 +6,7 @@
 # purpose:  get bibtex reference from DOI
 # author:   François-Xavier Coudert
 # e-mail:   fxcoudert@gmail.com
-# updated:  2011-01-01
+# updated:  2014-05-03
 #
 
 import sys
