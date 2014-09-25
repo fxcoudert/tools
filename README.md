@@ -10,6 +10,11 @@ by "category".
 
 - doi2bib: give it a DOI, it gives you a full bib entry
 - extractdoi: gets DOI from PDF (when possible)
+- texsize: 
+
+**Computational chemistry**
+
+- findsym.py: find space group of crystal structures (front-end to ASE/spglib routines)
 
 **Grace (xmgrace) scripts**
 
