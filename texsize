@@ -53,6 +53,12 @@ for i in $inc ; do
   fi
 done
 
+# Check that we have at least one file
+if [ "x$files" = "x" ]; then
+  echo "No figure included in this document"
+  exit 1
+fi
+
 sorted=`ls -lLrS $files | sed 's/.* //'`
 pdfsize=`filesize $1.pdf`
 
