@@ -10,7 +10,7 @@ by "category".
 
 - doi2bib: give it a DOI, it gives you a full bib entry
 - extractdoi: gets DOI from PDF (when possible)
-- texsize: 
+- texsize: list size of all figures included in TeX document
 
 **Computational chemistry**
 
