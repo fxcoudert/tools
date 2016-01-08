@@ -107,8 +107,9 @@ if len(sys.argv) != 2:
 
 try:
   cell = ase.io.read(sys.argv[1])
-except:
+except Exception as e:
   print "Could not read CIF structure from file '" + sys.argv[1] + "'"
+  print "Error message is: " + str(e)
   sys.exit(1)
 
 
