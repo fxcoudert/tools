@@ -9,14 +9,22 @@
 # updated:  2014-05-03
 #
 
-import sys
-import urllib, urllib2
+from __future__ import unicode_literals
+
+import sys, re, unicodedata
 import xml.dom.minidom
-import re
-import unicodedata
+
+# Importing URL-related routines, compatible with both python 2 & 3
+try:
+  from urllib.parse import urlencode
+  from urllib.request import urlopen, Request
+except ImportError:
+  from urllib import urlencode
+  from urllib2 import urlopen, Request
+
 
 def usage():
-  print """\nUsage: doi2bib DOI [...]\n"""
+  print("\nUsage: doi2bib DOI [...]\n")
 
 def main():
 
@@ -31,137 +39,136 @@ def main():
   else:
     for doi in sys.argv[1:]:
       try:
-	ref = getCrossRef(doi)
+        ref = getCrossRef(doi)
       except Exception as e:
-	print >> sys.stderr, "Couldn't resolve DOI '" + doi + "' through CrossRef: " + str(e)
-	return
+        sys.stderr.write("Couldn't resolve DOI '" + doi + "' through CrossRef: " + str(e) + "\n")
+        return
 
-      print bibtexEntry(ref)
+      print(bibtexEntry(ref))
 
 
 
 
 ################################################################
 # LaTeX accents replacement
-latexAccents = [
-  [ u"à", "\\`a" ],	# Grave accent
-  [ u"è", "\\`e" ],
-  [ u"ì", "\\`{\\i}" ],
-  [ u"ò", "\\`o" ],
-  [ u"ù", "\\`u" ],
-  [ u"ỳ", "\\`y" ],
-  [ u"À", "\\`A" ],
-  [ u"È", "\\`E" ],
-  [ u"Ì", "\\`{\\I}" ],
-  [ u"Ò", "\\`O" ],
-  [ u"Ù", "\\`U" ],
-  [ u"Ỳ", "\\`Y" ],
-  [ u"á", "\\'a" ],	# Acute accent
-  [ u"ć", "\\'c" ],
-  [ u"é", "\\'e" ],
-  [ u"í", "\\'{\\i}" ],
-  [ u"ó", "\\'o" ],
-  [ u"ú", "\\'u" ],
-  [ u"ý", "\\'y" ],
-  [ u"Á", "\\'A" ],
-  [ u"É", "\\'E" ],
-  [ u"Í", "\\'{\\I}" ],
-  [ u"Ó", "\\'O" ],
-  [ u"Ú", "\\'U" ],
-  [ u"Ý", "\\'Y" ],
-  [ u"â", "\\^a" ],	# Circumflex
-  [ u"ê", "\\^e" ],
-  [ u"î", "\\^{\\i}" ],
-  [ u"ô", "\\^o" ],
-  [ u"û", "\\^u" ],
-  [ u"ŷ", "\\^y" ],
-  [ u"Â", "\\^A" ],
-  [ u"Ê", "\\^E" ],
-  [ u"Î", "\\^{\\I}" ],
-  [ u"Ô", "\\^O" ],
-  [ u"Û", "\\^U" ],
-  [ u"Ŷ", "\\^Y" ],
-  [ u"ä", "\\\"a" ],	# Umlaut or dieresis
-  [ u"ë", "\\\"e" ],
-  [ u"ï", "\\\"{\\i}" ],
-  [ u"ö", "\\\"o" ],
-  [ u"ü", "\\\"u" ],
-  [ u"ÿ", "\\\"y" ],
-  [ u"Ä", "\\\"A" ],
-  [ u"Ë", "\\\"E" ],
-  [ u"Ï", "\\\"{\\I}" ],
-  [ u"Ö", "\\\"O" ],
-  [ u"Ü", "\\\"U" ],
-  [ u"Ÿ", "\\\"Y" ],
-  [ u"ã", "\\~{a}" ],	# Tilde
-  [ u"ñ", "\\~{n}" ],
-  [ u"ă", "\\u{a}" ],	# Breve
-  [ u"ĕ", "\\u{e}" ],
-  [ u"ŏ", "\\u{o}" ],
-  [ u"š", "\\v{s}" ],	# Caron
-  [ u"č", "\\v{c}" ],
-  [ u"ç", "\\c{c}" ],	# Cedilla
-  [ u"Ç", "\\c{C}" ],
-  [ u"œ", "{\\oe}" ],	# Ligatures
-  [ u"Œ", "{\\OE}" ],
-  [ u"æ", "{\\ae}" ],
-  [ u"Æ", "{\\AE}" ],
-  [ u"å", "{\\aa}" ],
-  [ u"Å", "{\\AA}" ],
-  [ u"–", "--" ],	# Dashes
-  [ u"—", "---" ],
-  [ u"−", "--" ],
-  [ u"ø", "{\\o}" ],	# Misc latin-1 letters
-  [ u"Ø", "{\\O}" ],
-  [ u"ß", "{\\ss}" ],
-  [ u"¡", "{!`}" ],
-  [ u"¿", "{?`}" ],
-  [ u"\\", "\\\\" ],	# Characters that should be quoted
-  [ u"~", "\\~" ],
-  [ u"&", "\\&" ],
-  [ u"$", "\\$" ],
-  [ u"{", "\\{" ],
-  [ u"}", "\\}" ],
-  [ u"%", "\\%" ],
-  [ u"#", "\\#" ],
-  [ u"_", "\\_" ],
-  [ u"≥", "$\\ge$" ],	# Math operators
-  [ u"≤", "$\\le$" ],
-  [ u"≠", "$\\neq$" ],
-  [ u"©", "\copyright" ], # Misc
-  [ u"ı", "{\\i}" ],
-  [ u"α", "$\\alpha$" ],
-  [ u"β", "$\\beta$" ],
-  [ u"γ", "$\\gamma$" ],
-  [ u"δ", "$\\delta$" ],
-  [ u"ε", "$\\epsilon$" ],
-  [ u"η", "$\\eta$" ],
-  [ u"θ", "$\\theta$" ],
-  [ u"λ", "$\\lambda$" ],
-  [ u"µ", "$\\mu$" ],
-  [ u"ν", "$\\nu$" ],
-  [ u"π", "$\\pi$" ],
-  [ u"σ", "$\\sigma$" ],
-  [ u"τ", "$\\tau$" ],
-  [ u"φ", "$\\phi$" ],
-  [ u"χ", "$\\chi$" ],
-  [ u"ψ", "$\\psi$" ],
-  [ u"ω", "$\\omega$" ],
-  [ u"°", "$\\deg$" ],
-  [ u"‘", "`" ],	# Quotes
-  [ u"’", "'" ],
-  [ u"′", "$^\\prime$" ],
-  [ u"“", "``" ],
-  [ u"”", "''" ],
-  [ u"‚", "," ],
-  [ u"„", ",," ],
-  [ u"\xa0", " " ],     # Unprintable characters
-]
-latexTranslationTable = dict([(ord(k), unicode(v)) for k, v in latexAccents])
+latexAccents = {
+  "à": "\\`a" ,	# Grave accent
+  "è": "\\`e" ,
+  "ì": "\\`{\\i}" ,
+  "ò": "\\`o" ,
+  "ù": "\\`u" ,
+  "ỳ": "\\`y" ,
+  "À": "\\`A" ,
+  "È": "\\`E" ,
+  "Ì": "\\`{\\I}" ,
+  "Ò": "\\`O" ,
+  "Ù": "\\`U" ,
+  "Ỳ": "\\`Y" ,
+  "á": "\\'a" ,	# Acute accent
+  "ć": "\\'c" ,
+  "é": "\\'e" ,
+  "í": "\\'{\\i}" ,
+  "ó": "\\'o" ,
+  "ú": "\\'u" ,
+  "ý": "\\'y" ,
+  "Á": "\\'A" ,
+  "É": "\\'E" ,
+  "Í": "\\'{\\I}" ,
+  "Ó": "\\'O" ,
+  "Ú": "\\'U" ,
+  "Ý": "\\'Y" ,
+  "â": "\\^a" ,	# Circumflex
+  "ê": "\\^e" ,
+  "î": "\\^{\\i}" ,
+  "ô": "\\^o" ,
+  "û": "\\^u" ,
+  "ŷ": "\\^y" ,
+  "Â": "\\^A" ,
+  "Ê": "\\^E" ,
+  "Î": "\\^{\\I}" ,
+  "Ô": "\\^O" ,
+  "Û": "\\^U" ,
+  "Ŷ": "\\^Y" ,
+  "ä": "\\\"a" ,	# Umlaut or dieresis
+  "ë": "\\\"e" ,
+  "ï": "\\\"{\\i}" ,
+  "ö": "\\\"o" ,
+  "ü": "\\\"u" ,
+  "ÿ": "\\\"y" ,
+  "Ä": "\\\"A" ,
+  "Ë": "\\\"E" ,
+  "Ï": "\\\"{\\I}" ,
+  "Ö": "\\\"O" ,
+  "Ü": "\\\"U" ,
+  "Ÿ": "\\\"Y" ,
+  "ã": "\\~{a}" ,	# Tilde
+  "ñ": "\\~{n}" ,
+  "ă": "\\u{a}" ,	# Breve
+  "ĕ": "\\u{e}" ,
+  "ŏ": "\\u{o}" ,
+  "š": "\\v{s}" ,	# Caron
+  "č": "\\v{c}" ,
+  "ç": "\\c{c}" ,	# Cedilla
+  "Ç": "\\c{C}" ,
+  "œ": "{\\oe}" ,	# Ligatures
+  "Œ": "{\\OE}" ,
+  "æ": "{\\ae}" ,
+  "Æ": "{\\AE}" ,
+  "å": "{\\aa}" ,
+  "Å": "{\\AA}" ,
+  "–": "--" ,	# Dashes
+  "—": "---" ,
+  "−": "--" ,
+  "ø": "{\\o}" ,	# Misc latin-1 letters
+  "Ø": "{\\O}" ,
+  "ß": "{\\ss}" ,
+  "¡": "{!`}" ,
+  "¿": "{?`}" ,
+  "\\": "\\\\" ,	# Characters that should be quoted
+  "~": "\\~" ,
+  "&": "\\&" ,
+  "$": "\\$" ,
+  "{": "\\{" ,
+  "}": "\\}" ,
+  "%": "\\%" ,
+  "#": "\\#" ,
+  "_": "\\_" ,
+  "≥": "$\\ge$" ,	# Math operators
+  "≤": "$\\le$" ,
+  "≠": "$\\neq$" ,
+  "©": "\copyright" , # Misc
+  "ı": "{\\i}" ,
+  "α": "$\\alpha$" ,
+  "β": "$\\beta$" ,
+  "γ": "$\\gamma$" ,
+  "δ": "$\\delta$" ,
+  "ε": "$\\epsilon$" ,
+  "η": "$\\eta$" ,
+  "θ": "$\\theta$" ,
+  "λ": "$\\lambda$" ,
+  "µ": "$\\mu$" ,
+  "ν": "$\\nu$" ,
+  "π": "$\\pi$" ,
+  "σ": "$\\sigma$" ,
+  "τ": "$\\tau$" ,
+  "φ": "$\\phi$" ,
+  "χ": "$\\chi$" ,
+  "ψ": "$\\psi$" ,
+  "ω": "$\\omega$" ,
+  "°": "$\\deg$" ,
+  "‘": "`" ,	# Quotes
+  "’": "'" ,
+  "′": "$^\\prime$" ,
+  "“": "``" ,
+  "”": "''" ,
+  "‚": "," ,
+  "„": ",," ,
+  "\xa0": " " ,     # Unprintable characters
+}
 
 def replaceLatexAccents(str):
   s = unicodedata.normalize('NFC', str)
-  return s.translate(latexTranslationTable)
+  return "".join([ latexAccents[c] if c in latexAccents else c for c in s ])
 
 
 ################################################################
@@ -170,7 +177,7 @@ def validateDOI(doi):
   # return the resolved URL, otherwise, we return None (which means the
   # DOI is invalid).
   try:
-    handle = urllib2.urlopen("http://dx.doi.org/" + doi)
+    handle = urlopen("http://dx.doi.org/" + doi)
   except:
     return None
 
@@ -202,11 +209,10 @@ crossRefKey = "fx.coudert@chimie-paristech.fr"
 def getCrossRef(doi):
 
   # Get the XML from CrossRef
-  params = urllib.urlencode({ "id" : "doi:" + doi, "noredirect" : "true",
+  params = urlencode({ "id" : "doi:" + doi, "noredirect" : "true",
                               "pid" : crossRefKey, "format" : "unixref" })
-  url = urllib2.Request("http://www.crossref.org/openurl/?" + params)
-
-  doc = urllib2.urlopen(url).read()
+  url = Request("http://www.crossref.org/openurl/?" + params)
+  doc = urlopen(url).read()
 
   # Parse it
   doc = xml.dom.minidom.parseString (doc)
