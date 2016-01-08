@@ -102,14 +102,14 @@ _atom_site_fract_z
 # Main program follows
 
 if len(sys.argv) != 2:
-  print "Usage: " + os.path.basename(sys.argv[0]) + " file.cif"
+  print("Usage: " + os.path.basename(sys.argv[0]) + " file.cif")
   sys.exit(1)
 
 try:
   cell = ase.io.read(sys.argv[1])
 except Exception as e:
-  print "Could not read CIF structure from file '" + sys.argv[1] + "'"
-  print "Error message is: " + str(e)
+  print("Could not read CIF structure from file '" + sys.argv[1] + "'")
+  print("Error message is: " + str(e))
   sys.exit(1)
 
 
@@ -124,12 +124,12 @@ l = ( [ 1e-10, 1e-9, 1e-8, 1e-7, 1e-6 ]
       + [ i*j for i in [ 1e-5, 1e-4, 1e-3, 1e-2, 1e-1 ] for j in l ] )
 
 old = ""
-print "# Tolerance\tSpace group"
+print("# Tolerance\tSpace group")
 
 for prec in l:
   s = spglib.get_spacegroup(cell, symprec=prec)
   if s != old:
-    print "%g\t\t%s" % (prec, s)
+    print("%g\t\t%s" % (prec, s))
     writeCIF (cell, prec, basename)
     old = s
 
