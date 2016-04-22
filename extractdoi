@@ -9,9 +9,9 @@
 
 
 extract () {
-  printf "$1"
-  text=`pdftotext -f 1 -l 1 -raw "$2" - | grep '10\.'`
-  echo $text | perl -pe 's@.*[ /]10\.@10\.@ ; s@[ \t].*@@'
+  printf "%s" "$1"
+  text=`pdftotext -f 1 -l 1 -raw "$2" - 2>/dev/null | grep '\<10\.'`
+  echo $text | perl -pe 's@.*[ /:]10\.@10\.@ ; s@[ \t].*@@ ; s@[.,;]$@@'
 }
 
 
