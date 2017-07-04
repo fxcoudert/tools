@@ -4,6 +4,7 @@
 # doi2bib
 #
 # purpose:  get bibtex reference from DOI
+# license:  MIT License
 # author:   François-Xavier Coudert
 # e-mail:   fxcoudert@gmail.com
 # updated:  2016-01-08
@@ -207,6 +208,12 @@ crossRefKey = "fx.coudert@chimie-paristech.fr"
 
 
 def getCrossRef(doi):
+
+  # Maybe we got a DOI URL instead of the DOI itself -- strip prefix
+  if doi[0:8] == "https://": doi = doi[8:]
+  if doi[0:7] == "http://": doi = doi[7:]
+  if doi[0:3] == "dx.": doi = doi[3:]
+  if doi[0:8] == "doi.org/": doi = doi[8:]
 
   # Get the XML from CrossRef
   params = urlencode({ "id" : "doi:" + doi, "noredirect" : "true",

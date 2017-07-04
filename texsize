@@ -4,6 +4,7 @@
 # texsize
 #
 # purpose:  list graphics file included in latex doc, and their size
+# license:  MIT License
 # author:   François-Xavier Coudert
 # e-mail:   fxcoudert@gmail.com
 # updated:  2014-05-12
