@@ -6,8 +6,9 @@ import sys, os
 #sys.path.append("/opt/spglib-1.6.0/lib/python")
 #sys.path.append("/opt/ase-3.8.1.3440")
 
-from pyspglib import spglib
+import spglib
 import numpy as np
+import copy
 import ase
 import ase.io
 
@@ -44,7 +45,6 @@ def angle_between(v1, v2):
       return 180.
   return np.rad2deg(angle)
 
-
 def cellParameters (lattice):
   return (np.linalg.norm(lattice[0]),
           np.linalg.norm(lattice[1]),
@@ -52,7 +52,6 @@ def cellParameters (lattice):
 	  angle_between(lattice[1], lattice[2]),
 	  angle_between(lattice[0], lattice[2]),
 	  angle_between(lattice[0], lattice[1]))
-
 
 def writeCIF (cell, prec, basename):
 
@@ -63,9 +62,16 @@ def writeCIF (cell, prec, basename):
 
   # Find detailed info about the refined cell
   lattice, scaled_positions, numbers = spglib.refine_cell (cell, prec)
+  if len(numbers)!=len(cell):
+    #create new cell
+    ncell = (lattice, scaled_positions, numbers)
+  else:
+    ncell = copy.deepcopy(cell)
+  sym = spglib.get_symmetry(ncell, prec)
+  uniques = np.unique(sym['equivalent_atoms'])
   a, b, c, alpha, beta, gamma = cellParameters (lattice)
 
-  f = open((basename + " " + sg + ".cif").replace("/","|"), "w")
+  f = open((basename + "_" + sgid + ".cif").replace("/","|"), "w")
 
   f.write ("# Symmetrized structure with precision = %g\n" % prec)
 
@@ -90,7 +96,7 @@ _atom_site_fract_y
 _atom_site_fract_z
 """)
 
-  for pos, at in zip(scaled_positions, numbers):
+  for pos, at in zip(scaled_positions[uniques], numbers[uniques]):
     sym = element_symbols[at]
     f.write ("%s %s 1.0 %.7f %.7f %.7f\n" % (sym, sym, pos[0], pos[1], pos[2]))
 
@@ -134,4 +140,6 @@ for prec in l:
     old = s
 
 sys.exit(0)
+
+
 
