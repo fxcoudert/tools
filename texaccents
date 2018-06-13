@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# texaccents
+#
+# purpose:  remove non-ASCII characters and replace them with TeX codes
+# license:  MIT License
+# author:   François-Xavier Coudert
+# e-mail:   fxcoudert@gmail.com
+# updated:  2018-06-13
+#
+
+import sys
+import unicodedata
+
+
+def usage():
+  print("\nUsage: texaccents <infile >outfile\n")
+  sys.exit(1)
+
+
+# Table of combining accents and their LaTeX equivalent
+accentsTable = {
+  "\u0300" : "\\`", # grave
+  "\u0301" : "\\'", # acute
+  "\u0302" : "\\^", # circumflex
+  "\u0303" : "\\~", # tilde
+  "\u0304" : "\\=", # macron
+  "\u0306" : "\\u", # breve
+  "\u0307" : "\\.", # dot above
+  "\u0308" : '\\"', # diaresis
+  "\u030A" : '\\r', # ring above
+  "\u030B" : '\\H', # double acute
+  "\u030C" : '\\v', # caron
+  "\u0323" : '\\d', # dot below
+  "\u0327" : '\\c', # cedilla
+  "\u0328" : '\\k', # ogonek
+  "\u0331" : '\\b', # macron below
+}
+
+def replaceAccents(s):
+  s = unicodedata.normalize('NFD', s)
+  res = ""
+  b = s[0]
+  for c in s[1:]:
+    if unicodedata.combining(c) and c in accentsTable:
+      if b == "i" or b == "j": b = "\\" + b
+      b = accentsTable[c] + "{" + b + "}"
+    else:
+      res += b
+      b = c
+  return unicodedata.normalize('NFC', res + b)
+
+
+# Replacement for non-ASCII characters
+latexNonASCII = {
+  "æ": "{\\ae}" ,
+  "Æ": "{\\AE}" ,
+  "ð": "{\\dh}" ,
+  "Ð": "{\\DH}" ,
+  "þ": "{\\th}" ,
+  "Þ": "{\\TH}" ,
+  "ı": "{\\i}" ,
+  "ȷ": "{\\j}" ,
+  "ł": "{\\l}" ,
+  "Ł": "{\\L}" ,
+  "Ŋ": "{\\NG}",
+  "ŋ": "{\\ng}",
+  "œ": "{\\oe}" ,
+  "Œ": "{\\OE}" ,
+  "ø": "{\\o}" ,
+  "Ø": "{\\O}" ,
+  "ß": "{\\ss}" ,
+  "–": "--" , # Dashes
+  "—": "---" ,
+  "−": "--" ,
+  "¡": "{!`}" , # Punctuation
+  "¿": "{?`}" ,
+  "·": "\\cdotp" ,
+  "≥": "$\\ge$" , # Math operators
+  "≤": "$\\le$" ,
+  "≠": "$\\neq$" ,
+  "∼": "\\~" ,
+  "©": "\copyright" , # Misc
+  "°": "$\\deg$" ,
+  "α": "$\\alpha$" , # Greek
+  "β": "$\\beta$" ,
+  "γ": "$\\gamma$" ,
+  "δ": "$\\delta$" ,
+  "ε": "$\\epsilon$" ,
+  "η": "$\\eta$" ,
+  "θ": "$\\theta$" ,
+  "λ": "$\\lambda$" ,
+  "µ": "$\\mu$" ,
+  "ν": "$\\nu$" ,
+  "π": "$\\pi$" ,
+  "σ": "$\\sigma$" ,
+  "τ": "$\\tau$" ,
+  "φ": "$\\phi$" ,
+  "χ": "$\\chi$" ,
+  "ψ": "$\\psi$" ,
+  "ω": "$\\omega$" ,
+  "‘": "`" , # Quotes
+  "’": "'" ,
+  "“": "``" ,
+  "”": "''" ,
+  "′": "$^\\prime$" ,
+  "‚": "," , # Weird characters
+  "„": ",," ,
+  "\xa0": " " , # Unprintable characters
+}
+
+
+def main():
+  # Set our output to the right encoding if none was chosen
+  import codecs, locale
+  if sys.stdout.encoding is None:
+    sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+
+  if len(sys.argv) > 1:
+    usage()
+
+  for s in sys.stdin.readlines():
+    s = "".join([ latexNonASCII[c] if c in latexNonASCII else c for c in s ])
+    s = replaceAccents(s)
+    print(s, end='')
+
+
+if __name__ == '__main__':
+    main()
