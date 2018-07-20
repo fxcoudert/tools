@@ -7,35 +7,24 @@
 # license:  MIT License
 # author:   François-Xavier Coudert
 # e-mail:   fxcoudert@gmail.com
-# updated:  2016-01-08
 #
 
-from __future__ import unicode_literals
+import re
+from urllib.parse import urlencode
+from urllib.request import urlopen, Request
 
-import sys, re, unicodedata
-import xml.dom.minidom
-
-# Importing URL-related routines, compatible with both python 2 & 3
-try:
-  from urllib.parse import urlencode
-  from urllib.request import urlopen, Request
-except ImportError:
-  from urllib import urlencode
-  from urllib2 import urlopen, Request
-
-
-def usage():
-  print("\nUsage: doi2bib DOI [...]\n")
 
 def main():
+  import codecs
+  import locale
+  import sys
 
   # Set our output to the right encoding if none was chosen
-  import codecs, locale
   if sys.stdout.encoding is None:
     sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
   if len(sys.argv) < 2:
-    usage()
+    print("\nUsage: doi2bib DOI [...]\n")
     sys.exit(1)
   else:
     for doi in sys.argv[1:]:
@@ -168,6 +157,7 @@ latexAccents = {
 }
 
 def replaceLatexAccents(str):
+  import unicodedata
   s = unicodedata.normalize('NFC', str)
   return "".join([ latexAccents[c] if c in latexAccents else c for c in s ])
 
@@ -178,12 +168,12 @@ def validateDOI(doi):
   # return the resolved URL, otherwise, we return None (which means the
   # DOI is invalid).
   try:
-    handle = urlopen("http://dx.doi.org/" + doi)
+    handle = urlopen("http://doi.org/" + doi)
   except:
     return None
 
   resolvedURL = handle.geturl()
-  if resolvedURL[0:18] == "http://dx.doi.org/":
+  if resolvedURL[0:15] == "http://doi.org/":
     return None
   else:
     return resolvedURL
@@ -208,6 +198,7 @@ crossRefKey = "fx.coudert@chimie-paristech.fr"
 
 
 def getCrossRef(doi):
+  import xml.dom.minidom
 
   # Maybe we got a DOI URL instead of the DOI itself -- strip prefix
   if doi[0:8] == "https://": doi = doi[8:]
@@ -217,7 +208,7 @@ def getCrossRef(doi):
 
   # Get the XML from CrossRef
   params = urlencode({ "id" : "doi:" + doi, "noredirect" : "true",
-                              "pid" : crossRefKey, "format" : "unixref" })
+                       "pid" : crossRefKey, "format" : "unixref" })
   url = Request("http://www.crossref.org/openurl/?" + params)
   doc = urlopen(url).read()
 
