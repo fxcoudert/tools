@@ -35,15 +35,9 @@ element_symbols = \
 
 
 def angle_between(v1, v2):
-  v1 = v1 / np.linalg.norm(v1)
-  v2 = v2 / np.linalg.norm(v2)
-  angle = np.arccos(np.dot(v1, v2))
-  if np.isnan(angle):
-    if (v1 == v2).all():
-      return 0.
-    else:
-      return 180.
-  return np.rad2deg(angle)
+  """Angle between two vectors, in degrees"""
+  p = np.dot(v1 / np.linalg.norm(v1), v2 / np.linalg.norm(v2))
+  return np.rad2deg(np.arccos(np.clip(p, -1.0, 1.0)))
 
 def cellParameters (lattice):
   return (np.linalg.norm(lattice[0]),
