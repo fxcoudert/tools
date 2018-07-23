@@ -89,8 +89,6 @@ nonASCII = {
 }
 
 
-
-
 def replace_accents(s):
   """Replaces combining accents by corresponding TeX macros"""
 
