@@ -7,7 +7,7 @@ import numpy as np
 file = sys.argv[1]
 
 # Temperature of the trajectory
-temp = 300
+temperature = 300
 
 # Read h matrix trajectory
 # Format is: ( a_x  a_y  a_z  b_x  b_y  b_z  c_x  c_y  c_z )
@@ -43,29 +43,33 @@ print '       c = %.3f' % np.mean([x[2] for x in abc])
 print '   alpha = %.3f' % np.rad2deg(np.mean([x[3] for x in abc]))
 print '    beta = %.3f' % np.rad2deg(np.mean([x[4] for x in abc]))
 print '   gamma = %.3f' % np.rad2deg(np.mean([x[5] for x in abc]))
-print '  volume = %.1f' % volume 
+print '  volume = %.1f' % volume
 
 
 # Calculating the strain matrices
 
-h0m1 = np.linalg.inv(h[0])
-h0m1t = h0m1.transpose()
+inv_reference = np.linalg.inv(h[0])
+inv_reference_t = h0m1.transpose()
 
 def h2eps(h):
-  return (np.dot(h0m1t, np.dot(h.transpose(), np.dot(h, h0m1))) - np.identity(3)) / 2
+  return (np.dot(inv_reference_t, np.dot(h.transpose(), np.dot(h, inv_reference))) - np.identity(3)) / 2
 
-eps = map(h2eps, h)
+epsilons = map(h2eps, h)
 
 # Elastic constants
-factor = (volume * 1.e-30) / (1.3806488e-23 * temp)
-Voigt_map = ((0, 0), (1, 1), (2, 2), (2, 1), (2, 0), (1, 0))
+factor = (volume * 1.e-30) / (1.3806488e-23 * temperature)
+CARTESIAN_TO_VOIGT = ((0, 0), (1, 1), (2, 2), (2, 1), (2, 0), (1, 0))
+VOIGT_FACTORS = (1, 1, 1, 2, 2, 2)
+
 Smat = np.zeros((6,6))
 for i in range(6):
-  fi = np.mean([ e[Voigt_map[i]] for e in eps ])
+  a, b = CARTESIAN_TO_VOIGT[i]
+  fi = np.mean([ epsilon[a, b] for epsilon in epsilons ])
   for j in range(i+1):
-    fj = np.mean([ e[Voigt_map[j]] for e in eps ])
-    fij = np.mean([ e[Voigt_map[i]] * e[Voigt_map[j]] for e in eps ])
-    Smat[i,j] = factor * (fij - fi * fj)
+    u, v = CARTESIAN_TO_VOIGT[j]
+    fj = np.mean([ epsilon[u, v] for epsilon in epsilons ])
+    fij = np.mean([ epsilon[a, b] * epsilon[u, v] for epsilon in epsilons ])
+    Smat[i,j] = VOIGT_FACTORS[i] * VOIGT_FACTORS[j] * factor * (fij - fi * fj)
 
 for i in range(5):
   for j in range(i+1,6):
@@ -89,4 +93,3 @@ for i in range(6):
 print ''
 print 'Stiffness matrix eigenvalues (GPa):'
 print (6*'% 8.2f') % tuple(np.sort(np.linalg.eigvals(Cmat)))
-
