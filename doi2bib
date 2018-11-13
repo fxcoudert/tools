@@ -23,13 +23,20 @@ def main():
   if sys.stdout.encoding is None:
     sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
-  if len(sys.argv) < 2:
+  argv = sys.argv
+  if '--doikey' in argv:
+    argv.remove('--doikey')
+    doiKey = True
+  else:
+    doiKey = False
+
+  if len(argv) < 2:
     print("\nUsage: doi2bib DOI [...]\n")
     sys.exit(1)
   else:
-    for doi in sys.argv[1:]:
+    for doi in argv[1:]:
       try:
-        ref = getCrossRef(doi)
+        ref = getCrossRef(doi, doiKey)
       except Exception as e:
         sys.stderr.write("Couldn't resolve DOI '" + doi + "' through CrossRef: " + str(e) + "\n")
         return
@@ -197,7 +204,7 @@ crossRefKey = "fx.coudert@chimie-paristech.fr"
 # dollar10boy@hotmail.com
 
 
-def getCrossRef(doi):
+def getCrossRef(doi, doiKey):
   import xml.dom.minidom
 
   # Maybe we got a DOI URL instead of the DOI itself -- strip prefix
@@ -279,13 +286,17 @@ def getCrossRef(doi):
       res["authors"].append(surname + ", " + givenName)
 
   # Create a citation key
-  r = re.compile("\W")
-  if len(res["authors"]) > 0:
-    key = r.sub('', res["authors"][0].split(",")[0])
+  if doiKey:
+    key = doi
   else:
-    key = ""
-  if res["year"] is not None:
-    key = key + res["year"]
+    r = re.compile("\W")
+    if len(res["authors"]) > 0:
+      key = r.sub('', res["authors"][0].split(",")[0])
+    else:
+      key = ""
+    if res["year"] is not None:
+      key = key + res["year"]
+
   res["key"] = key
 
   return res
