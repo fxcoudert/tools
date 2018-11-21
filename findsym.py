@@ -115,7 +115,6 @@ except Exception as e:
     print('Error message is: ' + str(e))
     sys.exit(1)
 
-
 if sys.argv[1][-4:] == '.cif':
     basename = sys.argv[1][:-4]
 else:
@@ -128,7 +127,7 @@ precs = [1e-10, 1e-9, 1e-8, 1e-7, 1e-6] + [i * j for i in [1e-5, 1e-4, 1e-3, 1e-
 old = ''
 print('# Tolerance\tSpace group')
 
-for prec in l:
+for prec in precs:
     s = spglib.get_spacegroup(cell, symprec=prec)
     if s != old:
         print(f'{prec}\t\t{s}')
