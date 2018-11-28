@@ -238,16 +238,17 @@ def getCrossRef(doi, doiKey):
 
   # Helper functions
   def findItemNamed(container, name):
-    list = container.getElementsByTagName(name)
-    if (len(list) == 0):
+    x = container.getElementsByTagName(name)
+    if (len(x) == 0):
       return None
     else:
-      return list[0]
+      return x[0]
+
   def data(node):
     if node is None:
       return None
     else:
-      return node.firstChild.data
+      return "".join([x.toxml().strip() for x in node.childNodes])
 
   res = {}
 
