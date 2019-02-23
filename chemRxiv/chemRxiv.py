@@ -60,11 +60,11 @@ class chemRxivAPI:
             yield from r
             n += self.pagesize
 
-    def query_list(self, *argv):
+    def query_list(self, *args, **kwargs):
         """Query of a list of item, handling paging internally, returning a
         list. May take a long time to return."""
 
-        return list(self.query_generator(*argv))
+        return list(self.query_generator(*args, **kwargs))
 
     def all_preprints(self):
         """Return a generator to all the chemRxiv preprints"""
@@ -91,6 +91,12 @@ class chemRxivAPI:
 
         return api.query('account/authors/search', method='POST', params=criteria)
 
+    def search_preprints(self, criteria):
+        """Search for preprints"""
+
+        p = {**criteria, 'institution': 259}
+        return api.query_list('articles/search', method='POST', params=p)
+
 
 # Below, we demonstrate how this works
 if __name__ == "__main__":
@@ -101,7 +107,7 @@ if __name__ == "__main__":
     try:
         f = open(os.path.expanduser('~/.figshare_token'), 'r')
         token = f.read().strip()
-    except:
+    except IOError:
         pass
 
     # Connect to Figshare
@@ -155,3 +161,11 @@ if __name__ == "__main__":
     for i in res:
         print(f'  - {i["full_name"]}')
     print('\n')
+
+    # And of course, search for preprints
+    res = api.search_preprints({'search_for': 'zeolite'})
+    print(f'Found {len(res)} papers about “zeolite”, here are the first five:')
+    for i in res[:5]:
+        print(f'  - {i["title"]}')
+
+    sys.exit(0)
