@@ -8,13 +8,14 @@ by "category".
 
 **Bibliography**
 
-- doi2bib: give it a DOI, it gives you a full bib entry
-- extractdoi: gets DOI from PDF (when possible)
-- texsize: list size of all figures included in TeX document
+- `doi2bib`: give it a DOI, it gives you a full bib entry
+- `extractdoi`: gets DOI from PDF (when possible)
+- `texsize`: list size of all figures included in TeX document
 
 **Computational chemistry**
 
-- findsym.py: find space group of crystal structures (front-end to ASE/spglib routines)
+- `crystal2cif`: extract information from CRYSTAL17 output file into CIF format
+- `findsym.py`: find space group of crystal structures (front-end to ASE/spglib routines)
 
 **Misc tools**
 
