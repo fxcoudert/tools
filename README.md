@@ -16,5 +16,6 @@ by "category".
 
 - findsym.py: find space group of crystal structures (front-end to ASE/spglib routines)
 
-**Grace (xmgrace) scripts**
+**Misc tools**
 
+- `unicode`: display the characters in a Unicode string
