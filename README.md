@@ -11,6 +11,7 @@ by "category".
 - `doi2bib`: give it a DOI, it gives you a full bib entry
 - `extractdoi`: gets DOI from PDF (when possible)
 - `texsize`: list size of all figures included in TeX document
+- `text2doi`: get DOI from references in text format (one per line)
 
 **Computational chemistry**
 
