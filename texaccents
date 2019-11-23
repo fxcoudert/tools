@@ -90,46 +90,46 @@ nonASCII = {
 
 
 def replace_accents(s):
-  """Replaces combining accents by corresponding TeX macros"""
+    """Replaces combining accents by corresponding TeX macros"""
 
-  import unicodedata
-  s = unicodedata.normalize('NFD', s)
-  res = ""
-  b = s[0]
-  for c in s[1:]:
-    if unicodedata.combining(c) and c in combiningAccents:
-      if b == "i" or b == "j":
-        b = "\\" + b
-      b = combiningAccents[c] + "{" + b + "}"
-    else:
-      res += b
-      b = c
-  return unicodedata.normalize('NFC', res + b)
+    import unicodedata
+    s = unicodedata.normalize('NFD', s)
+    res = ""
+    b = s[0]
+    for c in s[1:]:
+        if unicodedata.combining(c) and c in combiningAccents:
+            if b == "i" or b == "j":
+                b = "\\" + b
+            b = combiningAccents[c] + "{" + b + "}"
+        else:
+            res += b
+            b = c
+    return unicodedata.normalize('NFC', res + b)
 
 
 def texaccents(s):
-  """Replaces non-ASCII characters in string by TeX commands"""
+    """Replaces non-ASCII characters in string by TeX commands"""
 
-  s = "".join([nonASCII[c] if c in nonASCII else c for c in s])
-  s = replace_accents(s)
-  return s
+    s = "".join([nonASCII[c] if c in nonASCII else c for c in s])
+    s = replace_accents(s)
+    return s
 
 
 def main():
-  import codecs
-  import locale
-  import sys
+    import codecs
+    import locale
+    import sys
 
-  # Set our output to the right encoding if none was chosen
-  if sys.stdout.encoding is None:
-    sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+    # Set our output to the right encoding if none was chosen
+    if sys.stdout.encoding is None:
+        sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
-  if len(sys.argv) > 1:
-    print("\nUsage: texaccents <infile >outfile\n")
-    sys.exit(1)
+    if len(sys.argv) > 1:
+        print("\nUsage: texaccents <infile >outfile\n")
+        sys.exit(1)
 
-  for s in sys.stdin.readlines():
-    print(texaccents(s), end='')
+    for s in sys.stdin.readlines():
+        print(texaccents(s), end='')
 
 
 if __name__ == '__main__':
