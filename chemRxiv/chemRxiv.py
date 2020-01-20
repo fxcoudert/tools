@@ -7,14 +7,14 @@ import sys
 import requests
 
 
-class chemRxivAPI:
-    """Handle figshare API requests, using access token"""
+class ChemrxivClient:
+    """Handle figshare API requests, using access token."""
 
     base = 'https://api.figshare.com/v2'
     pagesize = 100
 
     def __init__(self, token):
-        """Initialiase the object and check access to the API"""
+        """Initialiase the object and check access to the API."""
 
         self.token = token
         self.headers = {'Authorization': 'token ' + self.token}
@@ -23,25 +23,24 @@ class chemRxivAPI:
         r.raise_for_status()
 
     def request(self, url, method, params):
-        """Send a figshare API request"""
-
+        """Send a figshare API request."""
         if method.casefold() == 'get':
             return requests.get(url, headers=self.headers, params=params)
         elif method.casefold() == 'post':
             return requests.post(url, headers=self.headers, json=params)
         else:
-            raise Exception(f'Unknow method for query: {method}')
+            raise Exception(f'Unknown method for query: {method}')
 
     def query(self, query, method='get', params=None):
-        """Perform a direct query"""
-
+        """Perform a direct query."""
         r = self.request(f'{self.base}/{query}', method, params)
         r.raise_for_status()
         return r.json()
 
-    def query_generator(self, query, method='get', params={}):
-        """Query for a list of items, with paging. Returns a generator."""
-
+    def query_generator(self, query, method='get', params=None):
+        """Query for a list of items, with paging and return a generator."""
+        if params is None:
+            params = {}
         n = 0
         while True:
             params.update({'limit': self.pagesize, 'offset': n})
@@ -62,39 +61,34 @@ class chemRxivAPI:
             n += self.pagesize
 
     def query_list(self, *args, **kwargs):
-        """Query of a list of item, handling paging internally, returning a
-        list. May take a long time to return."""
+        """Query of a list of item, handling paging internally, returning a list. 
 
+        May take a long time to return."""
         return list(self.query_generator(*args, **kwargs))
 
     def all_preprints(self):
-        """Return a generator to all the chemRxiv preprints"""
-
+        """Return a generator to all the chemRxiv preprints."""
         return self.query_generator('articles?institution=259')
 
     def preprint(self, identifier):
-        """Information on a given preprint"""
-
+        """Information on a given preprint."""
         return self.query(f'articles/{identifier}')
 
     def author(self, identifier):
-        """Information on a given preprint"""
-
+        """Information on a given preprint."""
         return self.query(f'account/authors/{identifier}')
 
-    def custom_fields_as_dict(self, doc):
-        """Retrieve chemRxiv custom fields as a dictionary"""
-
+    @staticmethod
+    def custom_fields_as_dict(doc):
+        """Retrieve chemRxiv custom fields as a dictionary."""
         return {i['name']: i['value'] for i in doc['custom_fields']}
 
     def search_authors(self, criteria):
-        """Search for authors"""
-
+        """Search for authors."""
         return self.query('account/authors/search', method='POST', params=criteria)
 
     def search_preprints(self, criteria):
-        """Search for preprints"""
-
+        """Search for preprints."""
         p = {**criteria, 'institution': 259}
         return self.query_list('articles/search', method='POST', params=p)
 
@@ -105,14 +99,14 @@ def main():
     # You can insert it below, or store it as text in ~/.figshare_token
     token = 'invalid'
     try:
-        f = open(os.path.expanduser('~/.figshare_token'), 'r')
-        token = f.read().strip()
+        with open(os.path.expanduser('~/.figshare_token'), 'r') as file:
+            token = file.read().strip()
     except IOError:
         pass
 
     # Connect to Figshare
     try:
-        api = chemRxivAPI(token)
+        api = ChemrxivClient(token)
     except requests.exceptions.HTTPError as e:
         print(f'Authentication did not succeed. Token was: {token}')
         print(f'Error: {e}')
@@ -134,7 +128,6 @@ def main():
     print('\n')
 
     # We can iterate over all preprints
-    countries = dict()
     for doc in api.all_preprints():
         if 'zeolite' in doc['title'].lower():
             # Get more details
