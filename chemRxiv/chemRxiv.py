@@ -2,8 +2,9 @@
 
 import json
 import os
-import requests
 import sys
+
+import requests
 
 
 class chemRxivAPI:
@@ -69,17 +70,17 @@ class chemRxivAPI:
     def all_preprints(self):
         """Return a generator to all the chemRxiv preprints"""
 
-        return api.query_generator('articles?institution=259')
+        return self.query_generator('articles?institution=259')
 
     def preprint(self, identifier):
         """Information on a given preprint"""
 
-        return api.query(f'articles/{identifier}')
+        return self.query(f'articles/{identifier}')
 
     def author(self, identifier):
         """Information on a given preprint"""
 
-        return api.query(f'account/authors/{identifier}')
+        return self.query(f'account/authors/{identifier}')
 
     def custom_fields_as_dict(self, doc):
         """Retrieve chemRxiv custom fields as a dictionary"""
@@ -89,18 +90,17 @@ class chemRxivAPI:
     def search_authors(self, criteria):
         """Search for authors"""
 
-        return api.query('account/authors/search', method='POST', params=criteria)
+        return self.query('account/authors/search', method='POST', params=criteria)
 
     def search_preprints(self, criteria):
         """Search for preprints"""
 
         p = {**criteria, 'institution': 259}
-        return api.query_list('articles/search', method='POST', params=p)
+        return self.query_list('articles/search', method='POST', params=p)
 
 
 # Below, we demonstrate how this works
-if __name__ == "__main__":
-
+def main():
     # We need a Figshare API token, see https://docs.figshare.com
     # You can insert it below, or store it as text in ~/.figshare_token
     token = 'invalid'
@@ -169,3 +169,7 @@ if __name__ == "__main__":
         print(f'  - {i["title"]}')
 
     sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
