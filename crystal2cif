@@ -108,6 +108,7 @@ else:
         print("Space group could not be found. Assuming P1. Please check.")
         sg_name = "P 1"
         sg_num = 1
+        f.seek(0)
 
 
 if len(sys.argv) >= 3:
