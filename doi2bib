@@ -105,6 +105,7 @@ latexAccents = {
   "ŏ": "\\u{o}" ,
   "š": "\\v{s}" ,	# Caron
   "č": "\\v{c}" ,
+  "ž": "\\v{z}" ,
   "ç": "\\c{c}" ,	# Cedilla
   "Ç": "\\c{C}" ,
   "œ": "{\\oe}" ,	# Ligatures
@@ -327,6 +328,8 @@ def bibtexEntry(ref):
       s = s + "  pages = { " + latex(ref["firstPage"]) + "--" + latex(ref["lastPage"]) + " },\n"
     else:
       s = s + "  pages = { " + latex(ref["firstPage"]) + " },\n"
+  s += '  doi = {' + ref['doi'] + '},\n'
+  s += '  url = {http://doi.org/' + ref['doi'] + '},\n'
 
   s = s + "}"
   return s
