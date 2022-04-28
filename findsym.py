@@ -2,15 +2,11 @@
 
 import copy
 import os
-import numpy as np
 import sys
-
-# You need spglib and ASE to be installed. You can hardwire their path here.
-# sys.path.append('/opt/spglib-1.6.0/lib/python')
-# sys.path.append('/opt/ase-3.8.1.3440')
 
 import ase
 import ase.io
+import numpy as np
 import spglib
 
 
