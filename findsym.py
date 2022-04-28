@@ -55,11 +55,7 @@ def writeCIF(cell, prec, basename):
 
     # Find detailed info about the refined cell
     lattice, scaled_positions, numbers = spglib.refine_cell(cell, prec)
-    if len(numbers) != len(cell):
-        # create new cell
-        ncell = (lattice, scaled_positions, numbers)
-    else:
-        ncell = copy.deepcopy(cell)
+    ncell = (lattice, scaled_positions, numbers)
     sym = spglib.get_symmetry(ncell, prec)
     uniques = np.unique(sym['equivalent_atoms'])
     a, b, c, alpha, beta, gamma = cellParameters(lattice)
